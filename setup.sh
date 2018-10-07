@@ -34,21 +34,22 @@ apt-get upgrade -y
 #        dhcp4: false
 
 #Ensure that the universe repo is available (not available by default on a server install)
+#Should update to check the presence first
 echo "deb http://au.archive.ubuntu.com/ubuntu/ bionic universe" >> /etc/apt/sources.list
 echo "deb http://au.archive.ubuntu.com/ubuntu/ bionic-updates universe" >> /etc/apt/sources.list
 
 #Install tshark
 apt-get install -y tshark
 
-#Install nodejs, for the 
+#Install nodejs, for the web interface
 apt-get install -y nodejs npm
 
 #Install shelljs, to allow nodejs to execute shell commands
-npm install shelljs
+#didnt end up using shelljs, used child_process instead
+#npm install shelljs
 
-npm install -g nodemon
 
-npm install ejs
+npm install -g nodemon ejs
 
 #Samba, to allow access for the text editor
 apt-get install -y samba smbclient

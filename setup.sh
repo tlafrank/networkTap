@@ -1,13 +1,15 @@
-#File used to setup the system. 18.04 Server. 
+#File used to setup the system. 18.04 Server.
 
 #Install updates
 apt-get update -y
 apt-get upgrade -y
 
 #NOTE: As per https://bugs.launchpad.net/ubuntu/+source/nplan/+bug/1736975, netplan.io  (netplan.io/bionic-updates 0.36.3 amd64) does not automatically start at boot. This should be fixed in the next revision (Not before 7 Oct 18). Apply the update from bionic-proposed until then.
+#netplan.io/bionic-proposed,now 0.40.1~18.04.1 amd64 [installed] is used due to https://bugs.launchpad.net/netplan/+bug/1770082
 
 
 #Install bridge-utils
+#Not sure if required
 
 #Configure netplan yaml file
 #network:

@@ -7,7 +7,8 @@ IFDOWNSTREAM="if-downstream"
 
 function d_start ( )
 {
-        echo  "ntlcd: Starting service"
+        echo  "ntlcd: Starting service for interfaces "$IFUPSTREAM" and $IFDOWNSTREAM"
+
 #Delete any existing qdiscs
         tc qdisc delete dev $IFUPSTREAM root netem 2> /dev/null
         tc qdisc delete dev $IFDOWNSTREAM root netem 2> /dev/null
@@ -23,6 +24,7 @@ function d_start ( )
 
 function d_stop ( )
 {
+        echo "ntlcd: Stopping service"
         tc qdisc delete dev $IFUPSTREAM root netem 2> /dev/null
         tc qdisc delete dev $IFDOWNSTREAM root netem 2> /dev/null
 

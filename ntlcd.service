@@ -4,13 +4,10 @@ After=network.target auditd.service
 StartLimitIntervalSec=0
 
 [Service]
-Type=simple ### forking?
-Restart=always
-RestartSec=1
-User=centos
-ExecStart=/usr/bin/env php /path/to/server.php
-ExecStop = /usr/local/bin/tsharkd.sh stop
-ExecReload = /usr/local/bin/tsharkd.sh reload
+Type=simple
+ExecStart=/usr/local/bin/ntlcd.sh start
+ExecStop = /usr/local/bin/ntlcd.sh stop
+ExecReload = /usr/local/bin/ntlcd.sh reload
 
 [Install]
 WantedBy=multi-user.target

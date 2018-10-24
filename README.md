@@ -9,6 +9,9 @@ The list of actions required to configure a Ubuntu 18.04 machine. Requires work 
 ### ntlcd.service
 The ntlc daemon launches on system boot. This sets up an empty netem qdisc, so that there is no requirement to test and jump between 'tc qdisc add' and 'tc qdisc change'. Additionally, it commences a tshark capture and launches the web interface server.
 
+### ntlcd.sh
+The NTLC daemon launched by ntlcd.service.
+
 ### ntlc.sh
 This script handles the changing of the netem qdisc as well as switching the tshark capture on or off. It is executed through user interaction on the web interface. 
 

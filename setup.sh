@@ -12,29 +12,39 @@ apt-get upgrade -y
 #Install bridge-utils
 #Not sure if required
 
-#Configure netplan yaml file
+#Configure netplan yaml file. Assumes three interfaces, one for out-of-band management, and the others as the up and downstream ports of the NTLC.
 #network:
-#    version: 2
-#    renderer: networkd
-#    ethernets:
-#        enp3s0:
-#            addresses: []
-#            dhcp4: true
-#            optional: true
-#        enp5s0:
-#            addresses: []
-#            dhcp4: true
-#            optional: true
-#    bridges:
-#      br0:
-#        addresses: [10.0.1.20/24]
-#        gateway4: 10.0.1.1
-#        nameservers:
-#          addresses: [8.8.8.8]
-#        interfaces:
-#          - enp3s0
-#          - enp5s0
-#        dhcp4: false
+#  version: 2
+#  ethernets:
+#    ens3:
+#      addresses:
+#        - 10.0.1.14/24
+#      dhcp4: false
+#      gateway4: 10.0.1.1
+#      nameservers:
+#       addresses:
+#         - 8.8.8.8
+#       search: []
+#    ens9:
+#      match:
+#        macaddress: 52:54:00:4c:43:36
+#      set-name: if-upstream
+#      dhcp4: no
+#    if-downstream:
+#      match:
+#        macaddress: 52:54:00:4c:43:37
+#      set-name: if-downstream
+#      dhcp4: no
+#  bridges:
+#    br0:
+#      interfaces:
+#        - ens9
+#        - if-downstream
+#      dhcp4: no
+
+netplan apply
+
+#Check that the configuration works
 
 #Ensure that the universe repo is available (not available by default on a server install)
 #Should update to check the presence first

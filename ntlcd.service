@@ -1,13 +1,13 @@
 [Unit]
 Description=Network Tap & Link Conditioner Daemon
 After=network.target auditd.service
-StartLimitIntervalSec=0
 
 [Service]
-Type=simple
-ExecStart=/usr/local/bin/ntlcd.sh start
+Type = simple
+ExecStart = /usr/local/bin/ntlcd.sh start
 ExecStop = /usr/local/bin/ntlcd.sh stop
-ExecReload = /usr/local/bin/ntlcd.sh reload
+ExecRestart = /usr/local/bin/ntlcd.sh restart
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target

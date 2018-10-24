@@ -1,4 +1,5 @@
 #File used to setup the system. 18.04 Server.
+#This is for bare metal. Multiple bridges and additional configuration will be required on the host/VM for this to work.
 
 #Install updates
 apt-get update -y
@@ -46,26 +47,27 @@ apt-get install -y tshark
 #Install nodejs, for the web interface
 apt-get install -y nodejs npm
 
+#Install node dependencies
+npm install -g nodemon ejs
+
 #Install shelljs, to allow nodejs to execute shell commands
 #didnt end up using shelljs, used child_process instead
 #npm install shelljs
-
-
-npm install -g nodemon ejs
 
 #Samba, to allow access for the text editor
 apt-get install -y samba smbclient
 
 #Configure Samba for the root directory
-[homes]
-   comment = Home Directories
-   browseable = yes
-   read only = no
-   create mask = 0700
-   directory mask = 0700
-   valid users = %S
+#[website]
+#  comment = nil
+#  path = /home/tlafrank/website
+#  read only = no
+#  browsable = yes
+#  create mask = 0700
+#  directory mask = 0700
+#  valid users = %S
 
-#Setup screen
+#Setup screen (TBA if required)
 echo 'hardstatus alwayslastline "%= %3n %t%? [%h]%? %="' >> ~/.screenrc
 echo 'caption always "%= %-w%L>%{= BW}%n*%t%{-}%52<%+w %L="'  >> ~/.screenrc
 

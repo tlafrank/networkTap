@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-#Template from https://github.com/ralish/bash-script-template
-
-#!/usr/bin/env bash
 
 # A best practices Bash script template with many useful functions. This file
 # combines the source.sh & script.sh files into a single script. If you want
@@ -14,10 +11,48 @@ set -o nounset          # Disallow expansion of unset variables
 set -o pipefail         # Use last non-zero exit code in a pipeline
 #set -o xtrace          # Trace the execution of the script (debug)
 
+#Define interface names
+IFUPSTREAM="if-upstream"
+IFDOWNSTREAM="if-downstream"
+
+#Create qdisc netem file
+#        tc qdisc add dev $IFUPSTREAM root netem delay 0ms
+#        tc qdisc add dev $IFDOWNSTREAM root netem delay 0ms
+
+#Create a file to record the status of the qdisc
+#        echo "Nil" > /tmp/ntlcd.status
+
+#EPLRS best case
+#tc qdisc change dev $IFUPSTREAM root netem rate 2Mbit
+#tc qdisc change dev $IFDOWNSTREAM root netem rate 2Mbit
+
+#25kHz SATCOM. 16kbit
+#tc qdisc change dev $IFUPSTREAM root netem rate 16kbit delay 239msec
+#tc qdisc change dev $IFDOWNSTREAM root netem rate 16kbit delay 239msec
+
+#Inmarsat GX - VSAT
+#tc qdisc change dev $IFUPSTREAM root netem rate 5Mbit delay 239msec
+#tc qdisc change dev $IFDOWNSTREAM root netem rate 50Mbit delay 239msec
+
+#BGAN - Explorer
+#tc qdisc change dev $IFUPSTREAM root netem rate 492kbit delay 239msec
+#tc qdisc change dev $IFDOWNSTREAM root netem rate 492kbit delay 239msec
+
+
+
+
+
+
+
+
+
+
+
 # DESC: Handler for unexpected errors
 # ARGS: $1 (optional): Exit code (defaults to 1)
 # OUTS: None
 function script_trap_err() {
+    echo "in script_trap_err()"
     local exit_code=1
 
     # Disable the error trap handler to prevent potential recursion
@@ -65,6 +100,8 @@ function script_trap_err() {
 # ARGS: None
 # OUTS: None
 function script_trap_exit() {
+    echo "in script_trap_exit()"
+
     cd "$orig_cwd"
 
     # Remove Cron mode script log
@@ -129,6 +166,7 @@ function script_init() {
     # Important to always set as we use it in the exit handler
     readonly ta_none="$(tput sgr0 2> /dev/null || true)"
 }
+
 
 # DESC: Acquire script lock
 # ARGS: $1 (optional): Scope of script execution lock (system or user)
@@ -312,11 +350,24 @@ function run_as_root() {
 # OUTS: None
 function script_usage() {
     cat << EOF
-Usage:
-     -h|--help                  Displays this help
-     -v|--verbose               Displays verbose output
-    -nc|--no-colour             Disables colour output
-    -cr|--cron                  Run silently unless we encounter an error
+
+Usage: $0 [-t on|off] [-c off|1|2|3|4] [-hv]
+
+Options
+     -t, --tshark (on|off)          Toggle
+     -c, --condition [off|1|2|3|4]  Set line conditioning where:
+                                     1: EPLRS Best Case (2Mbit)
+                                     2: 25kHz SATCOM (16kbit)
+                                     3: Inmarsat GX (5MBit UP / 50MBit DOWN)
+                                     4: Inmarsat BGAN (492kbit)
+     -h, --help                     Displays this help
+     -v, --verbose                  Displays verbose output
+
+    If no options are provided, the script returns the current state of tshark, tshark's drive usage
+as well as the current link conditioning applied in JSON format. Below is an example:
+
+{"Vol_Percent":"58","Vol_Amount":"938M","tsharkRunning":"1","netemStatus":"TBA"}
+
 EOF
 }
 
@@ -327,9 +378,7 @@ EOF
 function parse_params() {
     local param
     while [[ $# -gt 0 ]]; do
-        param="$1"
-        shift
-        case $param in
+         case $1 in
             -h|--help)
                 script_usage
                 exit 0
@@ -337,18 +386,45 @@ function parse_params() {
             -v|--verbose)
                 verbose=true
                 ;;
-            -nc|--no-colour)
-                no_colour=true
-                ;;
             -cr|--cron)
                 cron=true
+                ;;
+            -t|--tshark)
+		#Check that a valid option is supplied
+                checkArgs "$@"
+
+
+                ;;
+            -c|--condition)
+                #Check that a valid option is supplied
+		shift
+#		if [[ $1 == "off" ]]; then
+		    #Turn off tsharkd service
+#
+#		fi
+#		if [[ $1 == "on" ]]; then
+		    #Turn on tsharkd service
+#		fi
+
                 ;;
             *)
                 script_exit "Invalid parameter was provided: $param" 2
                 ;;
         esac
+        shift
     done
 }
+
+# DESC:
+# ARGS:
+# OUTS: None
+function checkArgs() {
+    shift
+    echo "From Check Args: " $@
+
+
+}
+
 
 
 # DESC: Main control flow
@@ -360,9 +436,28 @@ function main() {
 
     script_init "$@"
     parse_params "$@"
-    cron_init
-    colour_init
     #lock_init system
+
+#    echo "From Main: " $@
+
+    #Get the local hard drive stats (to monitor the drive to which tshark is capturing)
+    VOL="$(df -h / | awk 'NR==2 {print $4,$5}')"
+    VOL_AMOUNT="$(echo $VOL | awk '{print $1}')"
+    VOL_PERCENT="$(echo $VOL | awk '{print $2}' | sed -r 's/[%]//')"
+#    echo "Past vol_% " $VOL_PERCENT
+
+    #Check the running processes for the presence of a tshark instance
+    TSHARK="$(ps -a | grep 'tshark' -c)"
+# | grep 'tshark' -c)"
+#    TSHARK=1
+
+    echo "Made it past tshark"
+
+
+    NETEM="$(tc q | grep 'netem' | wc -l)"
+
+    echo '{"Vol_Percent":"'$VOL_PERCENT'","Vol_Amount":"'${VOL_AMOUNT}'","tsharkRunning":"'${TSHARK}'","netemStatus":"'${NETEM}'"}'
+
 }
 
 
@@ -371,15 +466,4 @@ main "$@"
 
 # vim: syntax=sh cc=80 tw=79 ts=4 sw=4 sts=4 et sr
 
-#Get the local hard drive stats (to monitor the drive to which tshark is capturing)
-#VOL="$(df -h / | awk 'NR==2 {print $4,$5}')"
-#VOL_AMOUNT="$(echo $VOL | awk '{print $1}')"
-#VOL_PERCENT="$(echo $VOL | awk '{print $2}' | sed -r 's/[%]//')"
 
-#Check the running processes for the presence of a tshark instance
-#TSHARK="$(ps -e | grep 'tshark' -c)"
-
-#NETEM="$(tc q | grep 'netem' | wc -l)"
-
-#echo '{"Vol_Percent":"'$VOL_PERCENT'","Vol_Amount":"'${VOL_AMOUNT}'","tsharkRunning":"'${TSHARK}'","netemStatus":"'${NETEM}'"}'
-#echo "{'Vol_Percent': $(VOL_PERCENT), 'Vol_Amount':${VOL_AMOUNT}, 'tsharkRunning': ${TSHARK}}" didnt work

@@ -6,6 +6,8 @@
 if [ "root" = $USER ]; then
   echo 'Script is running as SUDO, as expected.'
   
+  echo 'This should be run after the NodeJS server has been installed. See github.com/tlafrank/nodeJS_server/'
+  
   #Install updates
   #apt update -y
   #apt upgrade -y
@@ -83,10 +85,10 @@ if [ "root" = $USER ]; then
   #  directory mask = 0700
   #  valid users = %S
 
-  #Setup screen (TBA if required)
-  echo 'hardstatus alwayslastline "%= %3n %t%? [%h]%? %="' >> ~/.screenrc
-  echo 'caption always "%= %-w%L>%{= BW}%n*%t%{-}%52<%+w %L="'  >> ~/.screenrc
-
+  #Setup screen - To delete. Change with tmux?
+  #echo 'hardstatus alwayslastline "%= %3n %t%? [%h]%? %="' >> ~/.screenrc
+  #echo 'caption always "%= %-w%L>%{= BW}%n*%t%{-}%52<%+w %L="'  >> ~/.screenrc
+  
 
 fi
 

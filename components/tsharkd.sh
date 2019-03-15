@@ -5,35 +5,36 @@
 LOG_DIR=/var/tsharkCapture
 FILE_PREFIX=log
 FILE_SIZE=10240
+CONF_FILE=/opt/ntlc/ntlc.conf
+INTERFACE="br-ntlc"
 
 function d_start ( )
 {
         #Check to see if a NTLC configuration file exists, if so, read the log directory from it
         echo  "Tsharkd: starting service"
-        if [ -e /opt/ntlc/ntlc.conf ]; then
-                LOG_DIR=$(grep 'pcap_path' /opt/ntlc/ntlc.conf | awk -F\= '{print $2}')
-                FILE_PREFIX=$(grep 'filename_prefix' /opt/ntlc/ntlc.conf | awk -F\= '{print $2}')
+        if [ -e $CONF_FILE ]; then
+		#Get ntlc settings from the conf file
+                LOG_DIR=$(grep 'pcap_path' $CONF_FILE | awk -F\= '{print $2}')
+                FILE_PREFIX=$(grep 'filename_prefix' $CONF_FILE | awk -F\= '{print $2}')
 
                 #Add a random value, to track which files are in a sequence
                 FILE_PREFIX="${FILE_PREFIX}_${RANDOM}"
 
+                #Get the default capture file size
+                FILE_SIZE=$(grep 'file_size' $CONF_FILE | awk -F\= '{print $2}')
+
+		#Get interface
+		#INTERFACE=
+
                 #Make sure the directory variable is finished with a /
                 sed '/\/$/q2' $LOG_DIR
                 if [[ $? -eq 0 ]]; then
-                        LOG_DIR="$LOG_DIR/" 
+                        LOG_DIR="$LOG_DIR/"
                 fi
-
-                #Get the default capture file size
-                FILE_SIZE=$(grep 'file_size' /opt/ntlc/ntlc.conf | awk -F\= '{print $2}')
-
         fi
 
-        #if [ -e /opt/ntlc/ntlc.conf ]; then
-        #        /opt/ntlc/ntlc.conf
-        #        LOG_DIR=$pcap_path
-        #fi
         echo "Recording to $LOG_DIR"
-        tshark -i br-0 -b filesize:"$FILE_SIZE" -w "$LOG_DIR$FILE_PREFIX" &
+        tshark -i $INTERFACE -b filesize:"$FILE_SIZE" -w "$LOG_DIR$FILE_PREFIX" &
         echo $! > /tmp/tsharkd.pid
         echo "$(date) Creating $LOG_DIR$FILE_PREFIX" >> /var/log/tsharkd.log
         sleep  1

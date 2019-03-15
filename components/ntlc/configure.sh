@@ -5,7 +5,7 @@ function main {
   #Check that the script is being run as SUDO.
   if [ "root" = $USER ]; then
     echo 'Script is running as SUDO, as expected.'
- 
+
     conf_ntlc
 
   else
@@ -30,6 +30,8 @@ function conf_ntlc {
   do
     sed -e 's/^IFUPSTREAM/test/' ntlc.sh | grep 'STREAM'
   done
+
+  #Select bridge interface
 
 
 

@@ -71,7 +71,8 @@ function configure_bridge {
 	    nmcli conn add type ethernet con-name $iface ifname $iface
 	   
 	    #Modify the new connection
-            nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes ipv4.method link-local ipv6.method ignore
+            #nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes ipv4.method link-local ipv6.method ignore
+            nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes
             
             #nmcli conn modify id $iface +ipv4.method manual +ipv4.addresses $ifAddress
             #nmcli conn modify id $ifaceName +ipv4.gateway $ifaceGateway

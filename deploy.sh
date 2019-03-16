@@ -46,14 +46,14 @@ function remove_bridge {
 
 
 function configure_bridge {
-  echo -e "[ ${YELLOW}NOTICE${NC} ] Configuring bridge"
-
-  #Check if a bridge is installed
+  
+  #Check if a br-ntlc is installed
   ip address | grep 'br-ntlc' > /dev/null
 
   if [[ $? -ne 0 ]]; then
     #br-ntlc doesn't exist, create it
-
+    echo -e "[ ${YELLOW}NOTICE${NC} ] Configuring bridge"
+    
     nmcli conn add ifname br-ntlc type bridge con-name br-ntlc
     case $? in
       0)

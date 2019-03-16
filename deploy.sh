@@ -17,7 +17,7 @@ function main {
     echo 'Script is running as SUDO, as expected.'
     echo 'Assumes transparent bridge has already been established'
 
-    remove_bridge
+    #remove_bridge
 
     install_tshark
 
@@ -73,7 +73,10 @@ function configure_bridge {
 	    #Modify the new connection
             #nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes ipv4.method link-local ipv6.method ignore
             nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes
-            
+            #nmcli conn modify br-ntlc +ipv4.method link-local +ipv6.method ignore
+
+	    
+	    
             #nmcli conn modify id $iface +ipv4.method manual +ipv4.addresses $ifAddress
             #nmcli conn modify id $ifaceName +ipv4.gateway $ifaceGateway
             #nmcli conn modify br-ntlc +ipv4.method link-local
@@ -104,47 +107,48 @@ function configure_bridge {
 }
 
 function install_tshark {
-  echo -e "[ ${YELLOW}NOTICE${NC} ] Installing tshark"
+  #Check if tshark is already installed
+  #dpkg --list | grep 'tshark'
+  #dpkg -s tshark | grep 'Status' > /dev/null
+  if dpkg --get-selections | grep -q "^$tshark[[:space:]]*install$" >/dev/null; then
+  #if [[ $? -eq 1 ]]; then
+    #tshark is not already installed
+    echo -e "[ ${YELLOW}NOTICE${NC} ] Installing tshark"
 
-  #Ensure that the universe repo is available (not available by default on a server install)
-  grep '^[^#]' /etc/apt/sources.list | grep ' universe' > /dev/null
-  case $? in
-    0) echo -e "[ ${GREEN}SUCCESS${NC} ] Universe repo already available in sources";;
-    1)
-		#Universe repo was not found in sources, add the repo sources
-	  	echo -e "[ ${YELLOW}NOTICE${NC} ] Universe repo is being added to sources"
-
-	    echo "deb http://au.archive.ubuntu.com/ubuntu/ bionic universe" >> /etc/apt/sources.list
-	    echo "deb http://au.archive.ubuntu.com/ubuntu/ bionic-updates universe" >> /etc/apt/sources.list
-		case $? in
-    		0) echo -e "[ ${GREEN}SUCCESS${NC} ] Universe repo was successfully added to sources";;
-    		*) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst adding the universe repo to /etc/apt/sources.list";;
-  		esac
-	;;
-    *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst checking sources";;
-  esac
-
-
-  #Update
-  apt-get -y update > /dev/null
-  case $? in
-    0) echo -e "[ ${GREEN}SUCCESS${NC} ] Sources updated";;
-    *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst trying to update sources";;
-  esac
-
-  #Install tshark, if it doesnt already exist
-  dpkg -s tshark | grep 'Status' > /dev/null
-  case $? in
-    0) echo -e "[ ${GREEN}SUCCESS${NC} ] Tshark is already installed";;
-    1)
-      apt-get -y install tshark
-      case $? in 
-    *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst installing tshark";;
-      esac
+    #Ensure that the universe repo is available (not available by default on a server install)
+    grep '^[^#]' /etc/apt/sources.list | grep ' universe' > /dev/null
+    case $? in
+      0) echo -e "[ ${GREEN}SUCCESS${NC} ] Universe repo already available in sources";;
+      1)
+        #Universe repo was not found in sources, add the repo sources
+	echo -e "[ ${YELLOW}NOTICE${NC} ] Universe repo is being added to sources"
+	echo "deb http://au.archive.ubuntu.com/ubuntu/ bionic universe" >> /etc/apt/sources.list
+	echo "deb http://au.archive.ubuntu.com/ubuntu/ bionic-updates universe" >> /etc/apt/sources.list
+        case $? in
+          0) echo -e "[ ${GREEN}SUCCESS${NC} ] Universe repo was successfully added to sources";;
+    	  *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst adding the universe repo to /etc/apt/sources.list";;
+        esac
       ;;
-    		0) echo -e "[ ${GREEN}SUCCESS${NC} ] Tshark installed";;
-	*);;
-  esac
+      *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst checking sources";;
+    esac
+    
+    #Update
+    apt-get -y update > /dev/null
+    case $? in
+      0) echo -e "[ ${GREEN}SUCCESS${NC} ] Sources updated";;
+      *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst trying to update sources";;
+    esac
+
+    #Install tshark
+    apt-get -y install tshark
+    case $? in 
+      0) echo -e "[ ${GREEN}SUCCESS${NC} ] Tshark installed";;
+      *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst installing tshark";;
+    esac
+  else
+    #tshark is already installed  
+    echo -e "[ ${YELLOW}NOTICE${NC} ] Tshark is already installed"
+  fi
 }
 
 function install_ntlc() {

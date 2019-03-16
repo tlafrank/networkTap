@@ -39,6 +39,7 @@ function remove_bridge {
   #Removes br-ntlc
   echo "Remove br-ntlc"
   nmcli dev delete br-ntlc > /dev/null
+  nmcli connection delete br-ntlc > /dev/null
 
 }
 
@@ -63,6 +64,13 @@ function configure_bridge {
       	  select iface in $(nmcli -t device | awk -F: '{print $1}');
       	  do
       	    echo -e "[ ${YELLOW}NOTICE${NC} ] Adding $iface to br-ntlc"
+	    #Delete any existing connections with the same name
+	    nmcli conn delete $iface > /dev/null
+	    
+	    #Create a new connection
+	    nmcli conn add $iface
+	   
+	    #Modify the new connection
             nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes ipv4.method link-local ipv6.method ignore
             
             #nmcli conn modify id $iface +ipv4.method manual +ipv4.addresses $ifAddress

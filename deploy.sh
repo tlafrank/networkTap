@@ -169,6 +169,7 @@ function install_ntlc() {
 	#chmod 775
 
 	systemctl daemon-reload
+	echo -e "[ ${GREEN}SUCCESS${NC} ] NTLC deployed"
 }
 
 function enable_services() {

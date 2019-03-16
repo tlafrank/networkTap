@@ -17,8 +17,10 @@ function main {
     echo 'Script is running as SUDO, as expected.'
     echo 'Assumes transparent bridge has already been established'
 
+    remove_bridge
 
     install_tshark
+
     install_ntlc
 
     configure_bridge
@@ -26,45 +28,65 @@ function main {
     #Configure NTLC
 
 
-    enable_services
+    #enable_services
 
   else
     echo 'Script is not running as SUDO (required). Exiting with no changes.'
   fi
 }
 
+function remove_bridge {
+  #Removes br-ntlc
+  echo "Remove br-ntlc"
+  nmcli dev delete br-ntlc > /dev/null
+
+}
+
+
+
 function configure_bridge {
+  echo -e "[ ${YELLOW}NOTICE${NC} ] Configuring bridge"
+
   #Check if a bridge is installed
   ip address | grep 'br-ntlc' > /dev/null
 
-  if [[ $? -eq 0 ]]; then
+  if [[ $? -ne 0 ]]; then
     #br-ntlc doesn't exist, create it
 
     nmcli conn add ifname br-ntlc type bridge con-name br-ntlc
     case $? in
       0)
-	echo -e "[ ${GREEN}SUCCESS${NC} ] br-ntlc was created"
-	#Add interfaces to bridge interface
-	do
-	  select iface in $(nmcli -t device | awk -F: '{print $1}')
-	  do
-	    echo $iface
+        echo -e "[ ${GREEN}SUCCESS${NC} ] br-ntlc was created"
+      	#Add interfaces to bridge interface
+      	while :
+        do
+      	  select iface in $(nmcli -t device | awk -F: '{print $1}');
+      	  do
+      	    echo -e "[ ${YELLOW}NOTICE${NC} ] Adding $iface to br-ntlc"
+            #nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes ipv4.method link-local ipv6.method ignore
+            
+            #nmcli conn modify id $iface +ipv4.method manual +ipv4.addresses $ifAddress
+            #nmcli conn modify id $ifaceName +ipv4.gateway $ifaceGateway
+            #nmcli conn modify br-ntlc +ipv4.method link-local
+
+            break
           done
-	done
+      	  read -n 1 -p 'Do you wish to add another interface (y/n)? ' continue
+          echo ""
+          if [[ ! $continue =~ [yY] ]]; then
+            break
+          fi
+        done
+        
+        #Restart NetworkManager
+        systemctl restart NetworkManager
 
-        #nmcli conn modify id $ifaceName +ipv4.method manual +ipv4.addresses $ifAddress
-        #nmcli conn modify id $ifaceName +ipv4.gateway $ifaceGateway
-
-        #  case $? in
-        #    0) echo -e "[ ${GREEN}SUCCESS${NC} ] IP addresses were added to br-ntlc";;
-        #    *) echo -e "[ ${RED}FAILURE${NC} ] The IP addresses could not be added to br-ntlc";;
-        #  esac
       ;;
       *) echo -e "[ ${RED}FAILURE${NC} ] The bridge interface could not be created";;
     esac
 
-    nmcli conn modify br-ntlc +ipv4.method link-local
-    nmcli conn up id $ifaceName
+    echo -e "[ ${YELLOW}NOTICE${NC} ] br-ntlc is being brought up"
+    #nmcli conn up id $ifaceName
   else
     #br-ntlc interface already exists
     echo -e "[ ${YELLOW}NOTICE${NC} ] br-ntlc already exists"
@@ -73,6 +95,8 @@ function configure_bridge {
 }
 
 function install_tshark {
+  echo -e "[ ${YELLOW}NOTICE${NC} ] Installing tshark"
+
   #Ensure that the universe repo is available (not available by default on a server install)
   grep '^[^#]' /etc/apt/sources.list | grep ' universe' > /dev/null
   case $? in
@@ -100,7 +124,7 @@ function install_tshark {
   esac
 
   #Install tshark, if it doesnt already exist
-  dpkg -s tshark | grep 'Status'
+  dpkg -s tshark | grep 'Status' > /dev/null
   case $? in
     0) echo -e "[ ${GREEN}SUCCESS${NC} ] Tshark is already installed";;
     1)

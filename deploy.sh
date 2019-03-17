@@ -107,7 +107,7 @@ function install_tshark {
   #Check if tshark is already installed
   #dpkg --list | grep 'tshark'
   #dpkg -s tshark | grep 'Status' > /dev/null
-  if ! dpkg --get-selections | grep -q "^$tshark[[:space:]]*install$" >/dev/null; then
+  if ! dpkg --get-selections | grep -q "^tshark[[:space:]]*install$" >/dev/null; then
   #if [[ $? -eq 1 ]]; then
     #tshark is not already installed
     echo -e "[ ${YELLOW}NOTICE${NC} ] Installing tshark"

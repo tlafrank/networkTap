@@ -24,6 +24,8 @@ function main {
     install_ntlc
 
     configure_bridge
+    
+    add_interfaces
 
     #Configure NTLC
 
@@ -43,11 +45,44 @@ function remove_bridge {
 
 }
 
+function add_interfaces {
+  #Add interfaces to bridge interface
+  while :
+  do
+    read -n 1 -p 'Add interface to br-ntlc? (y/n)? ' continue
+    echo ""
+    if [[ ! $continue =~ [yY] ]]; then
+      break
+    fi
+    select iface in $(nmcli -t device | awk -F: '{print $1}');
+    do
+      echo -e "[ ${YELLOW}NOTICE${NC} ] Adding $iface to br-ntlc"
+      #Delete any existing connections with the same name
+      nmcli conn delete $iface > /dev/null
+	    
+      #Create a new connection
+      nmcli conn add type ethernet con-name $iface ifname $iface
+	   
+      #Modify the new connection
+      #nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes ipv4.method link-local ipv6.method ignore
+      nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes
+      #nmcli conn modify br-ntlc +ipv4.method link-local +ipv6.method ignore
 
+      #nmcli conn modify id $iface +ipv4.method manual +ipv4.addresses $ifAddress
+      #nmcli conn modify id $ifaceName +ipv4.gateway $ifaceGateway
+      #nmcli conn modify br-ntlc +ipv4.method link-local
+
+      break
+    done
+  done
+
+  #Restart NetworkManager
+  systemctl restart NetworkManager
+}
 
 function configure_bridge {
   
-  #Check if a br-ntlc is installed
+  #Check if a br-ntlc intreface already exists
   ip address | grep 'br-ntlc' > /dev/null
 
   if [[ $? -ne 0 ]]; then
@@ -56,54 +91,16 @@ function configure_bridge {
     
     nmcli conn add ifname br-ntlc type bridge con-name br-ntlc
     case $? in
-      0)
-        echo -e "[ ${GREEN}SUCCESS${NC} ] br-ntlc was created"
-      	#Add interfaces to bridge interface
-      	while :
-        do
-      	  select iface in $(nmcli -t device | awk -F: '{print $1}');
-      	  do
-      	    echo -e "[ ${YELLOW}NOTICE${NC} ] Adding $iface to br-ntlc"
-	    #Delete any existing connections with the same name
-	    nmcli conn delete $iface > /dev/null
-	    
-	    #Create a new connection
-	    nmcli conn add type ethernet con-name $iface ifname $iface
-	   
-	    #Modify the new connection
-            #nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes ipv4.method link-local ipv6.method ignore
-            nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes
-            #nmcli conn modify br-ntlc +ipv4.method link-local +ipv6.method ignore
-
-	    
-	    
-            #nmcli conn modify id $iface +ipv4.method manual +ipv4.addresses $ifAddress
-            #nmcli conn modify id $ifaceName +ipv4.gateway $ifaceGateway
-            #nmcli conn modify br-ntlc +ipv4.method link-local
-
-            break
-          done
-      	  read -n 1 -p 'Do you wish to add another interface (y/n)? ' continue
-          echo ""
-          if [[ ! $continue =~ [yY] ]]; then
-            break
-          fi
-        done
-        
-        #Restart NetworkManager
-        systemctl restart NetworkManager
-
-      ;;
+      0) echo -e "[ ${GREEN}SUCCESS${NC} ] br-ntlc was created";;
       *) echo -e "[ ${RED}FAILURE${NC} ] The bridge interface could not be created";;
     esac
 
     echo -e "[ ${YELLOW}NOTICE${NC} ] br-ntlc is being brought up"
-    #nmcli conn up id $ifaceName
+    nmcli conn up br-ntlc
   else
     #br-ntlc interface already exists
     echo -e "[ ${YELLOW}NOTICE${NC} ] br-ntlc already exists"
   fi
-
 }
 
 function install_tshark {

@@ -58,7 +58,7 @@ function add_interfaces {
     do
       echo -e "[ ${YELLOW}NOTICE${NC} ] Adding $iface to br-ntlc"
       #Delete any existing connections with the same name
-      nmcli conn delete $iface > /dev/null
+      nmcli conn delete $iface &> /dev/null
 	    
       #Create a new connection
       nmcli conn add type ethernet con-name $iface ifname $iface
@@ -71,6 +71,8 @@ function add_interfaces {
       #nmcli conn modify id $iface +ipv4.method manual +ipv4.addresses $ifAddress
       #nmcli conn modify id $ifaceName +ipv4.gateway $ifaceGateway
       #nmcli conn modify br-ntlc +ipv4.method link-local
+	
+      nmcli conn up $iface
 
       break
     done

@@ -64,14 +64,9 @@ function add_interfaces {
       nmcli conn add type ethernet con-name $iface ifname $iface
 	   
       #Modify the new connection
-      #nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes ipv4.method link-local ipv6.method ignore
       nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes
-      #nmcli conn modify br-ntlc +ipv4.method link-local +ipv6.method ignore
-
-      #nmcli conn modify id $iface +ipv4.method manual +ipv4.addresses $ifAddress
-      #nmcli conn modify id $ifaceName +ipv4.gateway $ifaceGateway
-      #nmcli conn modify br-ntlc +ipv4.method link-local
-	
+      
+      	
       nmcli conn up $iface
 
       break
@@ -96,9 +91,12 @@ function configure_bridge {
       0) echo -e "[ ${GREEN}SUCCESS${NC} ] br-ntlc was created";;
       *) echo -e "[ ${RED}FAILURE${NC} ] The bridge interface could not be created";;
     esac
+    
+    nmcli connection modify br-ntlc ipv4.method link-local ipv6.method ignore bridge.stp no
 
     echo -e "[ ${YELLOW}NOTICE${NC} ] br-ntlc is being brought up"
     nmcli conn up br-ntlc
+    systemctl restart NetworkManager
   else
     #br-ntlc interface already exists
     echo -e "[ ${YELLOW}NOTICE${NC} ] br-ntlc already exists"

@@ -24,7 +24,7 @@ function main {
     install_ntlc
 
     configure_bridge
-    
+
     add_interfaces
 
     #Configure NTLC
@@ -59,15 +59,15 @@ function add_interfaces {
       echo -e "[ ${YELLOW}NOTICE${NC} ] Adding $iface to br-ntlc"
       #Delete any existing connections with the same name
       nmcli conn delete $iface &> /dev/null
-	    
+
       #Create a new connection
-      nmcli conn add type ethernet con-name $iface ifname $iface
-	   
+      nmcli conn add type ethernet con-name $iface ifname $iface &> /dev/null
+
       #Modify the new connection
-      nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes
-      
-      	
-      nmcli conn up $iface
+      nmcli conn modify $iface connection.master br-ntlc connection.slave-type bridge connection.autoconnect yes &> /dev/null
+
+
+      nmcli conn up $iface &> /dev/null
 
       break
     done
@@ -78,25 +78,24 @@ function add_interfaces {
 }
 
 function configure_bridge {
-  
   #Check if a br-ntlc intreface already exists
   ip address | grep 'br-ntlc' > /dev/null
 
   if [[ $? -ne 0 ]]; then
     #br-ntlc doesn't exist, create it
     echo -e "[ ${YELLOW}NOTICE${NC} ] Configuring bridge"
-    
-    nmcli conn add ifname br-ntlc type bridge con-name br-ntlc
+
+    nmcli conn add ifname br-ntlc type bridge con-name br-ntlc &> /dev/null
     case $? in
       0) echo -e "[ ${GREEN}SUCCESS${NC} ] br-ntlc was created";;
       *) echo -e "[ ${RED}FAILURE${NC} ] The bridge interface could not be created";;
     esac
-    
-    nmcli connection modify br-ntlc ipv4.method link-local ipv6.method ignore bridge.stp no
+
+    nmcli connection modify br-ntlc ipv4.method link-local ipv6.method ignore bridge.stp no &> /dev/null
 
     echo -e "[ ${YELLOW}NOTICE${NC} ] br-ntlc is being brought up"
-    nmcli conn up br-ntlc
-    systemctl restart NetworkManager
+    nmcli conn up br-ntlc &> /dev/null
+    systemctl restart NetworkManager &> /dev/null
   else
     #br-ntlc interface already exists
     echo -e "[ ${YELLOW}NOTICE${NC} ] br-ntlc already exists"

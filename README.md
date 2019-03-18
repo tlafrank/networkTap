@@ -3,18 +3,26 @@ Configure a system to act as a network tap and line conditioner
 
 ## How it works
 
-### setup.sh
-The list of actions required to configure a Ubuntu 18.04 machine. Requires work as it is not in any condition to run as a shell script in its entierty.
+### deploy.sh
+Copies the various files to their appropriate directories (/usr/local/bin, /opt/ntlc/), installs dependencies (tshark) and configures the bridge interface.
 
-### ntlcd.service
+### components/ntlcd.service
 The ntlc daemon launches on system boot. This sets up an empty netem qdisc, so that there is no requirement to test and jump between 'tc qdisc add' and 'tc qdisc change'. Additionally, it commences a tshark capture and launches the web interface server.
 
-### ntlcd.sh
+### components/ntlcd.sh
 The NTLC daemon launched by ntlcd.service.
 
-### ntlc.sh
-This script handles the changing of the netem qdisc as well as switching the tshark capture on or off. It is executed through user interaction on the web interface. 
+### components/ntlc/ntlc.sh
+This script handles the changing of the netem qdisc as well as switching the tshark capture on or off. It is executed through user interaction on the web interface. Requires work.
 
+### components/ntlc/ntlc.conf
+Config settings for the NTLC. Read by tsharkd.sh (confirm this).
+
+### components/ntlc/configure.sh
+Placeholder for configuring the bridge. Bridge configuration from deploy.sh will be moved here eventually.
+
+
+Ignore for now:
 Usage:
 ntlc.sh [OPTION]
 

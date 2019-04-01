@@ -127,7 +127,7 @@ function install_tshark {
       ;;
       *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst checking sources";;
     esac
-    
+
     #Update
     apt-get -y update > /dev/null
     case $? in
@@ -137,12 +137,12 @@ function install_tshark {
 
     #Install tshark
     apt-get -y install tshark
-    case $? in 
+    case $? in
       0) echo -e "[ ${GREEN}SUCCESS${NC} ] Tshark installed";;
       *) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst installing tshark";;
     esac
   else
-    #tshark is already installed  
+    #tshark is already installed
     echo -e "[ ${YELLOW}NOTICE${NC} ] Tshark is already installed"
   fi
 }
@@ -176,7 +176,7 @@ function enable_services() {
 
 	#Start tsharkd
 	systemctl start tsharkd.service
-	case $? in 
+	case $? in
 		0) echo -e "[ ${GREEN}SUCCESS${NC} ] Tshark was started";;
 		*) echo -e "[ ${RED}FAILURE${NC} ] There was an unknown error whilst attempting to start tshark";;
 	esac

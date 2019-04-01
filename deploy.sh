@@ -15,7 +15,6 @@ function main {
   #Check that the script is being run as SUDO.
   if [ "root" = $USER ]; then
     echo 'Script is running as SUDO, as expected.'
-    echo 'Assumes transparent bridge has already been established'
 
     #remove_bridge
 
@@ -29,6 +28,7 @@ function main {
 
     #Configure NTLC
 
+    #conf_NTLC
 
     #enable_services
 
@@ -168,11 +168,16 @@ function install_ntlc() {
 	echo -e "[ ${GREEN}SUCCESS${NC} ] NTLC deployed"
 }
 
+function conf_NTLC() {
+  echo -e "[ ${YELLOW}NOTICE${NC} ] Configuring NTLC"
+
+  #Configure ntlc
+  #/opt/ntlc/configure.sh
+}
+
+
 function enable_services() {
 	echo -e "[ ${YELLOW}NOTICE${NC} ] Starting tsharkd"
-
-	#Configure ntlc
-	#/opt/ntlc/configure.sh
 
 	#Start tsharkd
 	systemctl start tsharkd.service
